@@ -76,10 +76,6 @@ sentiment_dist <- function(sentiment_df, name){
   
 }
 
-test_pt <- amazing2 %>% arrange(sentiment) %>% filter(word_count > 6) %>% 
-  slice(1) 
-geom_text(data = test_pt, aes(x = sentence * 1.05, y = sentiment, label = text))
-
 sentiment_smooth <- function(sentiment_df, name){
   ggplot(sentiment_df, aes(x = sentence, y = sentiment)) + 
     geom_smooth(method = "loess") + 
@@ -192,25 +188,4 @@ png("plots/synthesissmooth.png", width = 1200, height = 800)
 sentiment_smooth(synthesis2, "Synthesis - Smoothed Sentiment Curve")
 dev.off()
 
-#also add most positive/negative/neutral sentence
-synthesis2 %>% select(text)
-
-#all stories ----
-
-#facet wrap
-all_stories <- bind_rows(outpost2, amazing2, quiet2, candle2, synthesis2, terrarium2)
-ggplot(all_stories, aes(x = sentence, y = sentiment)) + geom_smooth() + theme_minimal() +
-  labs(title = "Story Sentiment Distribution") +
-  ggeasy::easy_center_title() +
-  facet_wrap(~Story)
-
-ggplot(all_stories, aes(x = sentence, y = sentiment)) + geom_line() + theme_minimal() +
-  labs(title = "Story Sentiment Distribution") +
-  ggeasy::easy_center_title() +
-  facet_wrap(~Story)
-
-ggplot(all_stories, aes(x = sentiment)) + geom_boxplot() +
-  labs(title = "Story Sentiment Distribution") +
-  ggeasy::easy_center_title() +
-  facet_wrap(~Story)
 

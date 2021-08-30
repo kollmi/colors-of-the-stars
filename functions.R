@@ -162,7 +162,8 @@ terrarium1 = freq_story_words("stories2/terrarium.docx", "Terrarium")
 terrarium2 = sentiment_df("stories2/terrarium.docx", "Terrarium")
 
 png("plots/terrariumcloud.png", width = 1200, height = 800, res = 300)
-wordcloud(terrarium1$word,terrarium1$Freq, min.freq = 6, scale=c(3.25,0.25), random.order = FALSE)
+wordcloud(terrarium1$word,terrarium1$Freq, min.freq = 6, scale=c(3.25,0.25), 
+          random.order = FALSE, family = "serif")
 dev.off()
 
 png("plots/terrariumdist.png", width = 1200, height = 800)
@@ -179,7 +180,8 @@ synthesis1 = freq_story_words("stories2/synthesis.docx", "Synthesis")
 synthesis2 = sentiment_df("stories2/synthesis.docx", "Synthesis")
 
 png("plots/synthesiscloud.png", width = 1200, height = 800, res = 300)
-wordcloud(synthesis1$word,synthesis1$Freq, min.freq = 3, scale=c(2,0.25), random.order = FALSE)
+wordcloud(synthesis1$word,synthesis1$Freq, min.freq = 3, scale=c(2,0.25), 
+          random.order = FALSE, family = "serif")
 dev.off()
 
 png("plots/synthesisdist.png", width = 1200, height = 800)

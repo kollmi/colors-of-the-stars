@@ -4,7 +4,7 @@ Sentiment and other natural language analysis of my first short story collection
 
 For a browser-readable version of the appendix as it appears in the print version of the book (with a high-level explanation, as well as the code and plots), go [here](https://kollmi.github.io/appendix.html)
 
-
+/b
 
 If you're looking for the code only, here's a short directory to the repository:
 

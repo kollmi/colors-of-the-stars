@@ -1,0 +1,227 @@
+---
+title: "Colors of the Stars - Appendix"
+author: "Erik Kollmer"
+output: 
+  html_document:
+    theme: lumen
+    code_folding: hide
+---
+```{r setup, include=FALSE} 
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+```
+As mentioned in the author’s note, this section is intended to provide an alternative way to view the stories through the lens of **natural language processing, or NLP for short**. What exactly is NLP, you might ask? In short, it’s the ability for computers to make sense of the unstructure nature of human language. You can see NLP at work in a wide variety of products today like Google Translate and Siri. However, these products are still far from achieving a complete understanding of human language. 
+
+For example, when us humans read, we are able to derive the true sentiment of a sentence like “watching that ant crawl through the dirt was an absolutely thrilling experience!” as sarcasm. However, a computer algorithm may pick up on the words “absolutely thrilling” and decide that this is an overwhelmingly positive sentence, and that the speaker actually does derive an enormous amount of pleasure from watching an ant crawl through dirt.
+
+Researchers in academia and at private companies, like Google and Microsoft, are working ways to overcome these “language barriers”. One approach they are taking is to train **large language models** (LLMs) on Wikipedia using massive amounts of computing power. However, are these LLMs really thinking when they determine what a sentence or paragraph really means? Not exactly, although this is a hotly debated topic amongst artificial intelligence scholars. Currently, they are simply recognizing patterns they picked up from reading text on the Internet. Sometimes, these patterns reflect the darker side of society and the Internet; language models have frequently associated women and minorities with discriminatory and racist descriptions.
+
+Please forgive the tangent - I just really love talking about artificial intelligence and its implications for our future. What you’ll see in this appendix are three different graphics for each story. The first one will be a wordcloud which displays the most frequent words in each story. The larger the word, the more frequently it appears in that story. In addition, there are two plots exploring the relationship between the sentiment of a sentence and where it comes during the story. Each sentence is evaluated by a computer algorithm and given a sentiment score, where 1 is positive, 0 is neutral, and -1 is negative. The first plot shows the sentiment of each sentence as well as the most positive and negative sentences for each story. For the second plot, a local regression (LOESS) curve has been applied to the first plot to smooth it out. Does the sentiment trend in the plots agree with what you felt while reading the stories?
+
+If you’d like to see the code for this appendix, you can check out the [full GitHub repository](kollmi.github.io/colors-of-the-stars) or toggle the grey **CODE** buttons.
+
+First we can load in our necessary packages, then create the functions that do three main things:
+
+- Read in the stories that are saved on my computer
+- Clean the text from the stories (removing punctuation, unnecessary stopwords like we, the, us, etc.) 
+- Structure the stories into tables that the computer can easily understand (called *data frames*)
+ 
+```{r}
+library(readtext)
+library(tidyverse)
+library(tidytext)
+library(tokenizers)
+library(sentimentr)
+library(wordcloud)
+
+freq_story_words <- function(story, name) {
+  text <- readtext::readtext(story)$text
+  
+  `%!in%` = Negate("%in%")
+  
+  clean_tokens <- text %>%
+    tokenize_ngrams(n = 1) %>%
+    unlist() %>%
+    tolower()
+  freq_words <- clean_tokens %>%
+    table() %>%
+    data.frame() %>%
+    rename(word = ".") %>%
+    filter(word %!in% c(stop_words$word, "you’re", "i’m", "don’t","can’t","it’s",
+                        "that’s")) %>%
+    arrange(-Freq) %>%
+    mutate(Story = name) 
+  freq_words
+}
+
+sentiment_df <- function(story, name){
+  text <- readtext::readtext(story)$text
+  sentences <- text %>% 
+    tokenize_sentences() %>% 
+    unlist() 
+  
+  sentence_df <- data.frame(sentence = 1:length(sentences), text = sentences) %>% 
+    inner_join(sentiment(sentences), by = c("sentence" = "element_id")) %>% 
+    arrange(-sentiment) %>% 
+    select(-sentence_id) %>% 
+    mutate(Story = name) 
+  sentence_df$text <- str_remove_all(sentence_df$text, '“|”')
+  
+  sentence_df
+}
+```
+
+With these preparatory functions are defined, I can write another function to create helpful visualizations that allow us to understand what's in the text. Specifically, the first function ```sentiment_dist``` creates a plot showing the sentiment score for each sentence in the text. The most negative/positive sentence greater than 6 words and the overall most negative/positive sentence are also included on the plot. The second function, ```sentiment_smooth```, uses a local regression smoothing method (as mentioned above) to create a more linear-looking trend over the course of the story.
+
+```{r}
+sentiment_dist <- function(sentiment_df, name){
+  #identifying most positive and negative sentences (6 words or more)
+  most_pos <- sentiment_df %>% filter(word_count > 6) %>% 
+    slice(1)
+  most_pos_all <- sentiment_df %>% slice(1)
+  most_neg <- sentiment_df %>% arrange(sentiment) %>% filter(word_count > 6) %>% 
+    slice(1)
+  most_neg_all <- sentiment_df %>% arrange(sentiment) %>% slice(1)
+  ggplot(sentiment_df, aes(x = sentence, y = sentiment)) + geom_line() + theme_minimal() +
+    labs(title = name) +
+    ggeasy::easy_center_title() +
+    geom_text(data = most_neg, 
+              aes(x = sentence, y = sentiment - 0.03, 
+                  label = text, family = "serif",
+                  vjust = "inward", hjust = "inward")) +
+    geom_point(data = most_neg, aes(x = sentence, y = sentiment)) +
+    geom_text(data = most_neg_all, 
+              aes(x = sentence, y = sentiment - 0.03,
+                  label = text, family = "serif",
+                  vjust = "inward", hjust = "inward")) +
+    geom_point(data = most_neg_all, aes(x = sentence, y = sentiment)) +
+    geom_text(data = most_pos, 
+              aes(x = sentence, y = sentiment + 0.03, 
+                 label = text, family = "serif",
+                 vjust = "inward", hjust = "inward")) +
+    geom_point(data = most_pos, aes(x = sentence, y = sentiment)) +
+    geom_text(data = most_pos_all,
+              aes(x = sentence, y = sentiment + 0.03, 
+                  label = text, family = "serif",
+                  vjust = "inward", hjust = "inward")) +
+    geom_point(data = most_pos_all, aes(x = sentence, y = sentiment)) +
+    theme(text=element_text(family="serif"),legend.position = "none")
+  
+}
+
+sentiment_smooth <- function(sentiment_df, name){
+  ggplot(sentiment_df, aes(x = sentence, y = sentiment)) + 
+    geom_smooth(method = "loess") + 
+    theme_minimal() +
+    labs(title = name) +
+    ggeasy::easy_center_title() +
+    theme(text=element_text(family="serif"), legend.position = "none")
+}
+```
+
+Now the fun part -- applying the functions to the actual stories! Again, you'll see three visualizations for each story:
+
+1. A wordcloud displaying the most frequent words (the larger the more frequent)
+2. A sentiment distribution plot (providing the sentiment scores for each sentence)
+3. A smoothed sentiment curve (a more linear-looking version of the sentiment distribution plot - does its trend agree with how you felt when reading the story? Remember, trending up is positive, trending down is negative)
+
+### Amazing Grace
+```{r}
+amazing1 = freq_story_words("stories/amazing grace.docx", "Amazing Grace")
+amazing2 = sentiment_df("stories/amazing grace.docx", "Amazing Grace")
+```
+#### Wordcloud
+```{r}
+wordcloud(amazing1$word,amazing1$Freq, min.freq = 5, 
+          scale=c(8,1), random.order = FALSE, family = "serif")
+```
+
+
+```{r}
+sentiment_dist(amazing2, "Amazing Grace - Sentiment Distribution")
+
+sentiment_smooth(amazing2, "Amazing Grace - Smoothed Sentiment Curve")
+```
+
+### The Quiet Gods
+```{r}
+quiet1 = freq_story_words("stories/The Quiet Gods.docx", "The Quiet Gods")
+quiet2 = sentiment_df("stories/The Quiet Gods.docx", "The Quiet Gods")
+```
+#### Wordcloud
+```{r}
+wordcloud(quiet1$word,quiet1$Freq, min.freq = 4, scale=c(8,1), 
+          random.order = FALSE, family = "serif", res = 300)
+```
+
+
+```{r}
+sentiment_dist(quiet2, "The Quiet Gods - Sentiment Distribution")
+
+sentiment_smooth(quiet2, "The Quiet Gods - Smoothed Sentiment Curve")
+```
+
+### Candle in the Dark
+```{r}
+candle1 = freq_story_words("stories/candle in the dark.docx", "Candle in the Dark")
+candle2 = sentiment_df("stories/candle in the dark.docx", "Candle in the Dark")
+```
+
+#### Wordcloud
+```{r}
+wordcloud(candle1$word,candle1$Freq, min.freq = 4, scale=c(7,1), 
+          random.order = FALSE, family = "serif")
+```
+
+```{r}
+sentiment_dist(candle2, "Candle in the Dark - Sentiment Distribution")
+sentiment_smooth(candle2, "Candle in the Dark - Smoothed Sentiment Curve")
+```
+
+### The Outpost
+```{r}
+outpost1 = freq_story_words("stories/the outpost.docx", "The Outpost")
+outpost2 = sentiment_df("stories/the outpost.docx", "The Outpost")
+```
+#### Wordcloud
+```{r}
+wordcloud(outpost1$word,outpost1$Freq, min.freq = 10, scale=c(8,1),
+          random.order = FALSE, family = "serif")
+```
+
+```{r}
+sentiment_dist(outpost2, "The Outpost - Sentiment Distribution")
+sentiment_smooth(outpost2, "The Outpost - Smoothed Sentiment Curve")
+```
+
+### Terrarium
+```{r}
+terrarium1 = freq_story_words("stories/terrarium.docx", "Terrarium")
+terrarium2 = sentiment_df("stories/terrarium.docx", "Terrarium")
+```
+#### Wordcloud
+```{r}
+wordcloud(terrarium1$word,terrarium1$Freq, min.freq = 6, scale=c(7,1), 
+          random.order = FALSE, family = "serif")
+```
+
+```{r}
+sentiment_dist(terrarium2, "Terrarium - Sentiment Distribution")
+sentiment_smooth(terrarium2, "Terrarium - Smoothed Sentiment Curve")
+```
+
+### Synthesis
+```{r}
+synthesis1 = freq_story_words("stories/synthesis.docx", "Synthesis")
+synthesis2 = sentiment_df("stories/synthesis.docx", "Synthesis")
+```
+#### Wordcloud
+```{r}
+wordcloud(synthesis1$word,synthesis1$Freq, min.freq = 3, scale=c(8,1), 
+          random.order = FALSE, family = "serif")
+```
+
+```{r}
+sentiment_dist(synthesis2, "Synthesis - Sentiment Distribution")
+sentiment_smooth(synthesis2, "Synthesis - Smoothed Sentiment Curve")
+```
+

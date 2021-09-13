@@ -7,3 +7,5 @@ The main script is titled [functions.R](https://github.com/kollmi/colors-of-the-
 - A **smoothed sentiment trend** curve that implements local regression (LOESS) to smooth out the standard sentiment curve.
 
 Each story's plots can be found in the [plots](https://github.com/kollmi/colors-of-the-stars/tree/main/plots) folder.
+
+A browser-readable version of the appendix (with a high-level explanation, as well as the code and plots) is located [here](https://kollmi.github.io/appendix.html)

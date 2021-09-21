@@ -1,5 +1,5 @@
 # colors-of-the-stars
-Sentiment and other natural language analysis of my first short story collection, "Colors of the Stars". If you'd like to read the stories as they were intended, [click here](bit.ly/colors-of-the-stars).
+Sentiment and other natural language analysis of my first short story collection, "Colors of the Stars". If you'd like to read the stories as they were intended, [click here](http://bit.ly/colors-of-the-stars)
 
 
 For a browser-readable version of the appendix as it appears in the print version of the book (with a high-level explanation, as well as the code and plots), go [here](https://kollmi.github.io/appendix.html)  

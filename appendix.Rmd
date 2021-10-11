@@ -9,7 +9,7 @@ output:
 ```{r setup, include=FALSE} 
 knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
 ```
-As mentioned in the author’s note, this section is intended to provide an alternative way to view the stories through the lens of **natural language processing, or NLP for short**. What exactly is NLP, you might ask? In short, it’s the ability for computers to make sense of the unstructure nature of human language. You can see NLP at work in a wide variety of products today like Google Translate and Siri. However, these products are still far from achieving a complete understanding of human language. 
+As mentioned in the author’s note, this section is intended to provide an alternative way to view the stories through the lens of **natural language processing, or NLP for short**. What exactly is NLP, you might ask? In short, it’s the ability for computers to make sense of the unstructured nature of human language. You can see NLP at work in a wide variety of products today like Google Translate and Siri. However, these products are still far from achieving a complete understanding of human language. 
 
 For example, when us humans read, we are able to derive the true sentiment of a sentence like “watching that ant crawl through the dirt was an absolutely thrilling experience!” as sarcasm. However, a computer algorithm may pick up on the words “absolutely thrilling” and decide that this is an overwhelmingly positive sentence, and that the speaker actually does derive an enormous amount of pleasure from watching an ant crawl through dirt.
 
